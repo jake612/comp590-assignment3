@@ -47,10 +47,10 @@
 
 (defn parent-commit-handler
   "function takes care of the case where there is a p-switch"
-  ([message tree-addr db] (parent-commit-handler message tree-addr [] db))
-  ([message tree-addr parent-commits db]
-   (let [exists-eval (which-true #(.exists (io/as-file (file-path % db))) parent-commits)
-         type-eval (which-true #(= (get-object-type % db) "commit") parent-commits)
+  ([message tree-addr dir db] (parent-commit-handler message tree-addr [] dir db))
+  ([message tree-addr parent-commits dir db]
+   (let [exists-eval (which-true #(.exists (io/as-file (file-path % dir db))) parent-commits)
+         type-eval (which-true #(= (get-object-type % dir db) "commit") parent-commits)
          commits-concat (fn [x] (reduce str "" (map #(str "parent " % "\n") x)))]
      (cond
        (not (nil? exists-eval)) (println (format "Error: no commit object exists at address %s." exists-eval))
@@ -68,14 +68,14 @@
     (cond
       (not (.isDirectory (io/file dir db))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (nil? tree-addr) (println "Error: you must specify a tree address.")
-      (not (.exists (io/as-file (file-path tree-addr db)))) (println "Error: no tree object exists at that address.")
+      (not (.exists (io/as-file (file-path tree-addr dir db)))) (println "Error: no tree object exists at that address.")
       (not= (get-object-type tree-addr dir db) "tree") (println "Error: an object exists at that address, but it isn't a tree.")
       (not= m-switch "-m") (println "Error: you must specify a message.")
       (nil? message) (println "Error: you must specify a message with the -m switch.")
       (= p-switch "-p") (cond
                           (nil? parent-commits) (println "Error: you must specify a commit object with the -p switch")
-                          :else (parent-commit-handler message tree-addr parent-commits db))
-      :else (parent-commit-handler message tree-addr db))))
+                          :else (parent-commit-handler message tree-addr parent-commits dir db))
+      :else (parent-commit-handler message tree-addr dir db))))
 
 
 
