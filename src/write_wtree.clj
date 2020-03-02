@@ -15,6 +15,16 @@
           (io/copy (ho/zip-str object-bytes) (io/file path-of-destination-file))))
     address))
 
+(defn write-blob
+  "function takes an address and writes it to the .git database"
+  [file dir db]
+  (let [header+blob (hh/blob-data file)
+        address (hh/sha1-sum header+blob)
+        path-of-destination-file (str dir db "/objects/" (subs address 0 2) "/" (subs address 2))]
+    (when (not (.exists (io/as-file path-of-destination-file)))
+      (do (io/make-parents path-of-destination-file)
+          (io/copy (ho/zip-str header+blob) (io/file path-of-destination-file))))))
+
 (defn hex-digits->byte
   [[dig1 dig2]]
   ;; This is tricky because something like "ab" is "out of range" for a
@@ -35,8 +45,8 @@
 (defn blob-entry-formatter
   "generates a blob entry for use in a tree"
   [file dir db]
-  (ho/write-blob (.getAbsolutePath file) dir db)
-  (ba/concat (.getBytes (str "100644 " (.getName file) "\000")) (from-hex-string (hh/sha1-sum (hh/blob-data (str dir file))))))
+  (write-blob (.getPath file) dir db)
+  (ba/concat (.getBytes (str "100644 " (.getName file) "\000")) (from-hex-string (hh/sha1-sum (hh/blob-data (str file))))))
 
 (defn tree-entry-formatter
   [name address]
@@ -61,7 +71,7 @@
         sort-files (sort-by #(.getName %) (rest files))
         filter-files (filter #(= level (count (re-seq #"\\" (.getPath %)))) sort-files)
         entries (for [file filter-files] (if (.isDirectory file)
-                                           (tree-entry-formatter (.getName file) (gen-tree (inc level) target-dir db file))
+                                           (tree-entry-formatter (.getName file) (gen-tree (inc level) db target-dir file))
                                            (blob-entry-formatter file target-dir db)))]
     (generate-tree-entry (vec entries) target-dir db)))
 
