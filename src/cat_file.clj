@@ -18,7 +18,7 @@
         address (second args)
         get-path #(str db "/objects/" (subs % 0 2) "/" (subs % 2))]
     (cond
-      (not (.isDirectory (io/file db))) (println "Error: could not find database. (Did you run `idiot init`?)")
+      (not (.isDirectory (io/file dir db))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (and (not= switch "-p") (not= switch "-t")) (println "Error: either the -p or the -t switch is required.")
       (nil? address) (println "Error: you must specify an address")
       (not (.exists (io/as-file (get-path address)))) (println "Error: that address doesn't exist")
