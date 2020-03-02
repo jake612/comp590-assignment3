@@ -25,5 +25,5 @@
       :else (case switch
               "-p" (print (second (str/split (fio/open-file (get-path address)) #"\000")))
               "-t" (-> address
-                       ct/get-object-type
+                       (ct/get-object-type dir db)
                        println)))))
