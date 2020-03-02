@@ -7,12 +7,12 @@
 (def author_committer "Linus Torvalds <torvalds@transmeta.com> 1581997446 -0500")
 
 (defn file-path
-  [file-name db]
-  (str db "/objects/" (subs file-name 0 2) "/" (subs file-name 2)))
+  [file-name dir db]
+  (str dir db "/objects/" (subs file-name 0 2) "/" (subs file-name 2)))
 
 (defn get-object-type
-  [address db]
-  (->> (file-path address db)
+  [address dir db]
+  (->> (file-path address dir db)
        fio/unzip
        (fio/split-at-byte (byte 0x20))
        first
@@ -69,7 +69,7 @@
       (not (.isDirectory (io/file dir db))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (nil? tree-addr) (println "Error: you must specify a tree address.")
       (not (.exists (io/as-file (file-path tree-addr db)))) (println "Error: no tree object exists at that address.")
-      (not= (get-object-type (str dir tree-addr) db) "tree") (println "Error: an object exists at that address, but it isn't a tree.")
+      (not= (get-object-type tree-addr dir db) "tree") (println "Error: an object exists at that address, but it isn't a tree.")
       (not= m-switch "-m") (println "Error: you must specify a message.")
       (nil? message) (println "Error: you must specify a message with the -m switch.")
       (= p-switch "-p") (cond
